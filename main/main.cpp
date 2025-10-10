@@ -31,6 +31,7 @@
 
 
 
+static const char *TAG = "LoRa+OLED";
 
 
 
@@ -38,89 +39,92 @@
 
 extern "C" void app_main(void)
 {
-  //  // Create HAL and module
-  // Esp32S3Hal hal(RADIO_SCK, RADIO_MISO, RADIO_MOSI);
-  // Module mod(&hal, RADIO_NSS, RADIO_IRQ, RADIO_RST, RADIO_GPIO);
-  // SX1262 radio(&mod);
-
-  // printf("\n[RadioLib] SX1262 LoRa test starting...\n");
-
-  // // Initialize radio (returns RADIOLIB_ERR_NONE if OK)
-  // int16_t state = radio.begin();
-  // if (state == RADIOLIB_ERR_NONE) {
-  //   printf("Radio initialized successfully!\n");
-  // } else {
-  //   printf("Radio init failed, code = %d\n", state);
-  //   return;   // stop here
-  // }
-
-  // // Configure LoRa parameters (optional — default is 434 MHz, 125 kHz BW)
-  // radio.setFrequency(868.0);       // adjust for your region (868 MHz EU / 915 MHz US)
-  // radio.setBandwidth(125.0);
-  // radio.setSpreadingFactor(9);
-  // radio.setCodingRate(7);          // 4/7
-  // radio.setOutputPower(14);        // dBm
-
-  // // // Send a test packet once every 3 s
-  // // for (;;) {
-  // //   state = radio.transmit("Hello from ESP32-S3!");
-  // //   if (state == RADIOLIB_ERR_NONE) {
-  // //     printf("Packet sent successfully!\n");
-  // //   } else {
-  // //     printf("Transmit failed, code = %d\n", state);
-  // //   }
-
-  // //   vTaskDelay(pdMS_TO_TICKS(3000));  // wait 3 s
-  // // }
-
-
-
-  //   uint8_t buffer[256];   // enough for typical LoRa packets
-
-  //   while (true) {
-  //       memset(buffer, 0, sizeof(buffer));
-  //       state = radio.receive(buffer, sizeof(buffer), 5000);  // timeout 5s
-
-  //       if (state == RADIOLIB_ERR_NONE) {
-  //           printf("Received packet: %s\n", buffer);
-  //           printf("RSSI: %.1f dBm, SNR: %.2f dB\n",
-  //                   radio.getRSSI(), radio.getSNR());
-  //       } else if (state == RADIOLIB_ERR_RX_TIMEOUT) {
-  //           printf("No packet received (timeout)\n");
-  //       } else {
-  //           printf("Receive failed, code = %d\n", state);
-  //       }
-
-  //       vTaskDelay(pdMS_TO_TICKS(1000));
-  //   }
-
-
-
-    // ESP_ERROR_CHECK(oled_init());
-    // oled_clear();
-    // oled_draw_text(0, 0, "Hello ESP-IDF!", 10);
-    // oled_display();
-
-    // while (1) {
-    //     vTaskDelay(pdMS_TO_TICKS(5000));
-    // }
-    // ESP_ERROR_CHECK(oled_init());
-    // oled_i2c_scan();     // Optional — debug only
-    // oled_clear();
-
-    // while (1) {
-    //     vTaskDelay(pdMS_TO_TICKS(5000));
-    // }
-
+      // ==== OLED Initialization ====
     ESP_ERROR_CHECK(oled_init());
     oled_clear();
+    oled_draw_text(0, 0, "Heltec ESP32-S3");
+    oled_draw_text(0, 1, "Initializing...");
+    vTaskDelay(pdMS_TO_TICKS(1500));
 
-    // Draw text: page = vertical block of 8 pixels
-    oled_draw_text(0, 0, "Hello ESP-IDF!");
-    oled_draw_text(0, 2, "LoRa Ready");
+    // ==== LoRa Setup ====
+    Esp32S3Hal hal(RADIO_SCK, RADIO_MISO, RADIO_MOSI);
+    Module mod(&hal, RADIO_NSS, RADIO_IRQ, RADIO_RST, RADIO_GPIO);
+    SX1262 radio(&mod);
 
-    while (true) {
-        vTaskDelay(pdMS_TO_TICKS(5000));
+    int16_t state = radio.begin();
+    if (state == RADIOLIB_ERR_NONE) {
+        ESP_LOGI(TAG, "Radio initialized OK");
+        oled_clear();
+        oled_draw_text(0, 0, "LoRa Init OK!");
+    } else {
+        ESP_LOGE(TAG, "Radio init failed: %d", state);
+        oled_clear();
+        oled_draw_text(0, 0, "LoRa Init FAIL!");
+        while (true) vTaskDelay(pdMS_TO_TICKS(1000));
     }
 
+    vTaskDelay(pdMS_TO_TICKS(1500));
+
+    // Configure parameters (EU868)
+    radio.setFrequency(868.0);
+    radio.setBandwidth(125.0);
+    radio.setSpreadingFactor(9);
+    radio.setCodingRate(7);
+    radio.setOutputPower(14);
+    radio.setCRC(true);
+
+    oled_draw_text(0, 2, "Freq:868.0MHz");
+    oled_draw_text(0, 3, "SF:9 BW:125kHz");
+    vTaskDelay(pdMS_TO_TICKS(1500));
+
+    oled_clear();
+    oled_draw_text(0, 0, "LoRa TX Demo");
+    oled_draw_text(0, 1, "----------------");
+
+    // ==== Transmit loop ====
+    uint32_t counter = 0;
+    char msg[64];
+
+    while (true) {
+        snprintf(msg, sizeof(msg), "Hello #%lu", (unsigned long)counter++);
+        ESP_LOGI(TAG, "Sending: %s", msg);
+
+        int16_t txState = radio.transmit(msg);
+        // small delay to avoid SPI/I2C overlap
+        vTaskDelay(pdMS_TO_TICKS(80));
+        oled_clear();
+        oled_draw_text(0, 0, "TX Mode");
+        oled_draw_text(0, 1, msg);
+
+        if (txState == RADIOLIB_ERR_NONE) {
+            ESP_LOGI(TAG, "Packet sent successfully!");
+            oled_draw_text(0, 3, "Status: OK");
+        } else {
+            ESP_LOGE(TAG, "Transmit failed: %d", txState);
+            oled_draw_text(0, 3, "Status: FAIL");
+        }
+
+        // Switch to RX for a short period to check for replies
+        int16_t rxState;
+        char rxBuf[64] = {0};
+      rxState = radio.receive((uint8_t*)rxBuf, sizeof(rxBuf), 3000);
+      vTaskDelay(pdMS_TO_TICKS(80));   // allow Vext and bus to settle
+
+        if (rxState == RADIOLIB_ERR_NONE) {
+            ESP_LOGI(TAG, "RX: %s", rxBuf);
+            char info[32];
+            snprintf(info, sizeof(info), "RSSI:%.1fdBm", radio.getRSSI());
+            oled_draw_text(0, 5, "RX OK!");
+            oled_draw_text(0, 6, rxBuf);
+            oled_draw_text(0, 7, info);
+        } else if (rxState == RADIOLIB_ERR_RX_TIMEOUT) {
+            ESP_LOGI(TAG, "RX Timeout");
+            oled_draw_text(0, 5, "RX Timeout");
+        } else {
+            ESP_LOGE(TAG, "RX Error:%d", rxState);
+            oled_draw_text(0, 5, "RX Error");
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(3000));  // repeat every 3 s
+    }
 }

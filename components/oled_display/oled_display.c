@@ -1,134 +1,3 @@
-// #include "oled_display.h"
-// #include "driver/i2c_master.h"
-// #include "driver/gpio.h"
-// #include "esp_log.h"
-// #include "freertos/FreeRTOS.h"
-// #include "freertos/task.h"
-// #include <string.h>
-
-// #define TAG "oled_display"
-
-// // === Pin mapping for Heltec WiFi LoRa V3 (ESP32-S3) ===
-// #define I2C_MASTER_SDA_IO  17
-// #define I2C_MASTER_SCL_IO  18
-// #define I2C_MASTER_FREQ_HZ 400000
-// #define OLED_ADDR          0x3C
-// #define VEXT_PIN           36
-// #define OLED_RST_PIN       21
-
-// // === Internal handles ===
-// static i2c_master_bus_handle_t s_bus_handle = NULL;
-// static i2c_master_dev_handle_t s_dev_handle = NULL;
-// static bool s_initialized = false;
-
-// // === Local helpers ===
-// static void oled_reset(void) {
-//     gpio_set_direction(OLED_RST_PIN, GPIO_MODE_OUTPUT);
-//     gpio_set_level(OLED_RST_PIN, 0);
-//     vTaskDelay(pdMS_TO_TICKS(10));
-//     gpio_set_level(OLED_RST_PIN, 1);
-//     vTaskDelay(pdMS_TO_TICKS(10));
-// }
-
-// void oled_vext_on(void) {
-//     gpio_set_direction(VEXT_PIN, GPIO_MODE_OUTPUT);
-//     gpio_set_level(VEXT_PIN, 0);  // LOW = ON
-// }
-
-// void oled_vext_off(void) {
-//     gpio_set_direction(VEXT_PIN, GPIO_MODE_OUTPUT);
-//     gpio_set_level(VEXT_PIN, 1);  // HIGH = OFF
-// }
-
-// // === Core functions ===
-// esp_err_t oled_init(void) {
-//     if (s_initialized) return ESP_OK;
-
-//     oled_vext_on();
-//     vTaskDelay(pdMS_TO_TICKS(200));
-//     oled_reset();
-
-//     // Configure I²C bus
-//     i2c_master_bus_config_t bus_cfg = {
-//         .i2c_port = 0,
-//         .sda_io_num = I2C_MASTER_SDA_IO,
-//         .scl_io_num = I2C_MASTER_SCL_IO,
-//         .clk_source = I2C_CLK_SRC_DEFAULT,
-//         .glitch_ignore_cnt = 7,
-//         .intr_priority = 0,
-//         .trans_queue_depth = 0,                // <-- synchronous (blocking) mode
-//         .flags = {
-//             .enable_internal_pullup = true,    // <-- helps if no external pull-ups
-//         },
-//     };
-//     ESP_ERROR_CHECK(i2c_new_master_bus(&bus_cfg, &s_bus_handle));
-
-//     // Attach OLED as device
-//     i2c_device_config_t dev_cfg = {
-//         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-//         .device_address = OLED_ADDR,
-//         .scl_speed_hz = I2C_MASTER_FREQ_HZ,
-//     };
-//     ESP_ERROR_CHECK(i2c_master_bus_add_device(s_bus_handle, &dev_cfg, &s_dev_handle));
-
-//     // Basic SSD1306 init sequence
-//     const uint8_t init_cmds[] = {
-//         0xAE, 0x20, 0x00, 0x40, 0x81, 0xFF,
-//         0xA1, 0xA6, 0xA8, 0x3F, 0xC8, 0xD3, 0x00,
-//         0xD5, 0x80, 0xD9, 0xF1, 0xDA, 0x12, 0xDB, 0x40,
-//         0x8D, 0x14, 0xAF
-//     };
-
-//     for (size_t i = 0; i < sizeof(init_cmds); ++i) {
-//         uint8_t buf[2] = {0x00, init_cmds[i]};
-//         ESP_ERROR_CHECK(i2c_master_transmit(s_dev_handle, buf, sizeof(buf), pdMS_TO_TICKS(100)));
-//     }
-
-//     ESP_LOGI(TAG, "OLED initialized successfully");
-//     s_initialized = true;
-//     return ESP_OK;
-// }
-
-// esp_err_t oled_clear(void) {
-//     uint8_t buffer[128] = {0};
-//     for (uint8_t page = 0; page < 8; ++page) {
-//         uint8_t cmds[] = {0x00, (uint8_t)(0xB0 + page), 0x00, 0x10};
-//         ESP_ERROR_CHECK(i2c_master_transmit(s_dev_handle, cmds, sizeof(cmds), pdMS_TO_TICKS(100)));
-
-//         uint8_t control_byte = 0x40;
-//         ESP_ERROR_CHECK(i2c_master_transmit(s_dev_handle, &control_byte, 1, pdMS_TO_TICKS(100)));
-//         ESP_ERROR_CHECK(i2c_master_transmit(s_dev_handle, buffer, sizeof(buffer), pdMS_TO_TICKS(100)));
-//     }
-//     return ESP_OK;
-// }
-
-// // === Optional debug helper ===
-// void oled_i2c_scan(void) {
-//     if (!s_bus_handle) {
-//         ESP_LOGW(TAG, "I2C bus not initialized, scanning aborted");
-//         return;
-//     }
-
-//     ESP_LOGI(TAG, "Scanning I2C bus...");
-//     for (uint8_t addr = 1; addr < 127; addr++) {
-//         i2c_device_config_t dev_cfg = {
-//             .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-//             .device_address = addr,
-//             .scl_speed_hz = I2C_MASTER_FREQ_HZ,
-//         };
-//         i2c_master_dev_handle_t tmp_dev;
-//         if (i2c_master_bus_add_device(s_bus_handle, &dev_cfg, &tmp_dev) == ESP_OK) {
-//             esp_err_t ret = i2c_master_transmit(tmp_dev, NULL, 0, pdMS_TO_TICKS(50));
-//             if (ret == ESP_OK) {
-//                 ESP_LOGI(TAG, "Found I2C device at 0x%02X", addr);
-//             }
-//             i2c_master_bus_rm_device(tmp_dev);
-//         }
-//     }
-// }
-
-
-
 #include "oled_display.h"
 
 #include "driver/i2c_master.h"
@@ -160,30 +29,73 @@ static inline esp_err_t oled_write_cmd(uint8_t cmd) {
     return i2c_master_transmit(s_dev, buf, sizeof(buf), pdMS_TO_TICKS(100));
 }
 
+
+
+
+
 static inline esp_err_t oled_write_cmds(const uint8_t* cmds, size_t n) {
-    // pack control + sequence of commands into one transmit
-    // max stack size caution; send in small chunks if needed
-    for (size_t i = 0; i < n; ++i) {
-        ESP_RETURN_ON_ERROR(oled_write_cmd(cmds[i]), TAG, "cmd 0x%02X failed", cmds[i]);
+    if (!s_dev || !cmds || n == 0) {
+        ESP_LOGE(TAG, "oled_write_cmds(): invalid args");
+        return ESP_ERR_INVALID_ARG;
     }
+
+    for (size_t i = 0; i < n; ++i) {
+        uint8_t buf[2] = { 0x00, cmds[i] };  // control=0x00 (command), then command byte
+        esp_err_t err = ESP_FAIL;
+
+        // --- retry loop with optional mutex in case of conflicts with lora module ---
+        for (int attempt = 0; attempt < 3; ++attempt) {
+
+            
+            err = i2c_master_transmit(s_dev, buf, sizeof(buf), pdMS_TO_TICKS(100));
+
+            if (err == ESP_OK) break; // success
+            ESP_LOGW(TAG, "I2C cmd 0x%02X failed (try %d)", cmds[i], attempt + 1);
+            vTaskDelay(pdMS_TO_TICKS(10)); // short pause between retries
+        }
+
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "oled_write_cmds(): cmd 0x%02X failed after retries", cmds[i]);
+            return err;
+        }
+    }
+
     return ESP_OK;
 }
 
+
+
+
 static inline esp_err_t oled_write_data(const uint8_t* data, size_t n) {
     // data must be sent with control byte 0x40 in the SAME transaction
-    // allocate a small temporary buffer per page/chunk
-    // n is typically <= 128; safe for stack if chunked
     uint8_t buf[1 + 128];
+
     while (n) {
         size_t chunk = n > 128 ? 128 : n;
         buf[0] = 0x40;                               // control=0x40 (data)
         memcpy(&buf[1], data, chunk);
-        ESP_RETURN_ON_ERROR(i2c_master_transmit(s_dev, buf, 1 + chunk, pdMS_TO_TICKS(200)), TAG, "data xfer failed");
+
+        // --- retry loop with optional mutex in case of conflicts with lora module ---
+        esp_err_t err = ESP_FAIL;
+        for (int attempt = 0; attempt < 3; ++attempt) {
+
+            err = i2c_master_transmit(s_dev, buf, 1 + chunk, pdMS_TO_TICKS(200));
+
+            if (err == ESP_OK) break;               // success
+            ESP_LOGW(TAG, "I2C data xfer failed (try %d)", attempt + 1);
+            vTaskDelay(pdMS_TO_TICKS(10));          // brief recovery delay
+        }
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "oled_write_data(): final fail after retries");
+            return err;
+        }
+
         data += chunk;
         n    -= chunk;
     }
     return ESP_OK;
 }
+
 
 static void oled_reset(void) {
     gpio_set_direction(OLED_RST_PIN, GPIO_MODE_OUTPUT);

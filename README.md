@@ -60,6 +60,7 @@ idf.py flash
 idf.py monitor
 ```
 
+Make sure the sdkconfig is adapted to the board you're using ! The current sdkconfig is ready to be used for ESP32-S3 MCUs
 
 ## 5. Portability to Other ESP-IDF Targets and Transceivers
 
