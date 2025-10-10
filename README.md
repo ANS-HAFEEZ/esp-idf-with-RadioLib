@@ -1,6 +1,6 @@
 # ESP-IDF RadioLib Component and Oled Display Component for Heltec WiFi LoRa V3 (ESP32-S3)
 
-![Heltec WiFi LoRa V3](https://heltec.org/wp-content/uploads/2023/03/WiFi-LoRa-32-V3.png)
+![Heltec WiFi LoRa V3](entry_image.png)
 
 ## Overview
 
@@ -36,8 +36,8 @@ This project follows the **standard ESP-IDF component structure**, so setup and 
 ### 2. Cloning the Project
 
 ```bash
-git clone https://github.com/....
-cd repoName
+git clone https://github.com/Rorschak84/esp-idf-with-RadioLib.git
+cd esp-idf-with-RadioLib
 ```
 
 ### 3. Mapping the correct PINS
