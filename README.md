@@ -77,8 +77,6 @@ The core logic and component structure are based on **ESP-IDF best practices**, 
 Reference implementation:  
 👉 [RadioLib ESP-IDF HAL Example](https://github.com/jgromes/RadioLib/tree/master/examples/NonArduino/ESP-IDF)
 
-> Tip: The ESP-IDF component system allows you to maintain clean separation between hardware-specific code (HAL) and radio logic.
-
 ---
 
 ### 📶 Supporting Other LoRa / RF Modules
