@@ -105,14 +105,13 @@ size_t rlb_printf(bool ts, const char* format, ...) {
     vsnprintf(buffer + len_ts, len_str + 1, format, arg);
     va_end(arg);
   }
-  #if defined(RADIOLIB_BUILD_ARDUINO)
-  len = RADIOLIB_DEBUG_PORT.write(reinterpret_cast<const uint8_t*>(buffer), len);
-  #else
+
   len = fwrite(buffer, sizeof(temp[0]), len, RADIOLIB_DEBUG_PORT);
-  #endif
+
   if (buffer != temp) {
     delete[] buffer;
   }
   return len;
 }
+
 #endif

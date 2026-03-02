@@ -277,24 +277,6 @@ class PhysicalLayer {
 
     // basic methods
 
-    #if defined(RADIOLIB_BUILD_ARDUINO)
-    /*!
-      \brief Arduino Flash String transmit method.
-      \param str Pointer to Arduino Flash String that will be transmitted.
-      \param addr Node address to transmit the packet to. Only used in FSK mode.
-      \returns \ref status_codes
-    */
-    int16_t transmit(__FlashStringHelper* fstr, uint8_t addr = 0);
-
-    /*!
-      \brief Arduino String transmit method.
-      \param str Address of Arduino string that will be transmitted.
-      \param addr Node address to transmit the packet to. Only used in FSK mode.
-      \returns \ref status_codes
-    */
-    int16_t transmit(String& str, uint8_t addr = 0);
-    #endif
-
     /*!
       \brief C-string transmit method.
       \param str C-string that will be transmitted.
@@ -312,17 +294,6 @@ class PhysicalLayer {
     */
     virtual int16_t transmit(const uint8_t* data, size_t len, uint8_t addr = 0);
 
-    #if defined(RADIOLIB_BUILD_ARDUINO)
-    /*!
-      \brief Arduino String receive method.
-      \param str Address of Arduino String to save the received data.
-      \param len Expected number of characters in the message. Leave as 0 if expecting a unknown size packet.
-      \param timeout Reception timeout in milliseconds. If set to 0,
-      timeout period will be calculated automatically based on the radio configuration.
-      \returns \ref status_codes
-    */
-    int16_t receive(String& str, size_t len = 0, RadioLibTime_t timeout = 0);
-    #endif
 
     /*!
       \brief Sets module to sleep.
@@ -370,17 +341,6 @@ class PhysicalLayer {
     */
     virtual int16_t receive(uint8_t* data, size_t len, RadioLibTime_t timeout = 0);
 
-    #if defined(RADIOLIB_BUILD_ARDUINO)
-    /*!
-      \brief Interrupt-driven Arduino String transmit method. Unlike the standard transmit method, this one is non-blocking.
-      Interrupt pin will be activated when transmission finishes.
-      \param str Address of Arduino String that will be transmitted.
-      \param addr Node address to transmit the packet to. Only used in FSK mode.
-      \returns \ref status_codes
-    */
-    int16_t startTransmit(String& str, uint8_t addr = 0);
-    #endif
-
     /*!
       \brief Interrupt-driven Arduino String transmit method. Unlike the standard transmit method, this one is non-blocking.
       Interrupt pin will be activated when transmission finishes.
@@ -410,17 +370,6 @@ class PhysicalLayer {
       \returns \ref status_codes
     */
     virtual int16_t finishReceive();
-
-    #if defined(RADIOLIB_BUILD_ARDUINO)
-    /*!
-      \brief Reads data that was received after calling startReceive method.
-      \param str Address of Arduino String to save the received data.
-      \param len Expected number of characters in the message. When set to 0, the packet length will be retrieved 
-      automatically. When more bytes than received are requested, only the number of bytes requested will be returned.
-      \returns \ref status_codes
-    */
-    int16_t readData(String& str, size_t len = 0);
-    #endif
 
     /*!
       \brief Reads data that was received after calling startReceive method.

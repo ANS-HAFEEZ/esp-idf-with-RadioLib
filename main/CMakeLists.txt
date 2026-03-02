@@ -1,3 +1,3 @@
 idf_component_register(SRCS "main.cpp"
-                    REQUIRES spi_flash RadioLib oled_display
+                    REQUIRES spi_flash RadioLib
                     INCLUDE_DIRS "")

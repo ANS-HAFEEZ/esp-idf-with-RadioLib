@@ -12,14 +12,7 @@
 */
 class ExternalRadio: public PhysicalLayer {
   public:
-    #if defined(RADIOLIB_BUILD_ARDUINO)
-    /*!
-      \brief Default constructor.
-      \param pin Output pin when using direct transmission, defaults to unused pin.
-    */
-    ExternalRadio(uint32_t pin = RADIOLIB_NC); // cppcheck-suppress noExplicitConstructor
-    #endif
-    
+   
     /*!
       \brief Default constructor.
       \param hal Pointer to the hardware abstraction layer to use.

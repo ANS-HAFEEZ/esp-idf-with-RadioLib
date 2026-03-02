@@ -1,112 +1,25 @@
 #include "PhysicalLayer.h"
-
 #include <string.h>
 
 PhysicalLayer::PhysicalLayer() {
-  this->freqStep = 1;
-  this->maxPacketLength = 1;
-  #if !RADIOLIB_EXCLUDE_DIRECT_RECEIVE
-  this->bufferBitPos = 0;
-  this->bufferWritePos = 0;
-  #endif
+	this->freqStep = 1;
+	this->maxPacketLength = 1;
+	#if !RADIOLIB_EXCLUDE_DIRECT_RECEIVE
+	this->bufferBitPos = 0;
+	this->bufferWritePos = 0;
+	#endif
 }
-
-#if defined(RADIOLIB_BUILD_ARDUINO)
-int16_t PhysicalLayer::transmit(__FlashStringHelper* fstr, uint8_t addr) {
-  // read flash string length
-  size_t len = 0;
-  PGM_P p = reinterpret_cast<PGM_P>(fstr);
-  while(true) {
-    char c = RADIOLIB_NONVOLATILE_READ_BYTE(p++);
-    len++;
-    if(c == '\0') {
-      break;
-    }
-  }
-
-  // dynamically allocate memory
-  #if RADIOLIB_STATIC_ONLY
-    char str[RADIOLIB_STATIC_ARRAY_SIZE];
-  #else
-    char* str = new char[len];
-  #endif
-
-  // copy string from flash
-  p = reinterpret_cast<PGM_P>(fstr);
-  for(size_t i = 0; i < len; i++) {
-    str[i] = RADIOLIB_NONVOLATILE_READ_BYTE(p + i);
-  }
-
-  // transmit string
-  int16_t state = transmit(str, addr);
-  #if !RADIOLIB_STATIC_ONLY
-    delete[] str;
-  #endif
-  return(state);
-}
-
-int16_t PhysicalLayer::transmit(String& str, uint8_t addr) {
-  return(transmit(str.c_str(), addr));
-}
-#endif
 
 int16_t PhysicalLayer::transmit(const char* str, uint8_t addr) {
-  return(transmit(reinterpret_cast<uint8_t*>(const_cast<char*>(str)), strlen(str), addr));
+	return(transmit(reinterpret_cast<uint8_t*>(const_cast<char*>(str)), strlen(str), addr));
 }
 
 int16_t PhysicalLayer::transmit(const uint8_t* data, size_t len, uint8_t addr) {
-  (void)data;
-  (void)len;
-  (void)addr;
-  return(RADIOLIB_ERR_UNSUPPORTED);
+	(void)data;
+	(void)len;
+	(void)addr;
+	return(RADIOLIB_ERR_UNSUPPORTED);
 }
-
-#if defined(RADIOLIB_BUILD_ARDUINO)
-int16_t PhysicalLayer::receive(String& str, size_t len, RadioLibTime_t timeout) {
-  int16_t state = RADIOLIB_ERR_NONE;
-
-  // user can override the length of data to read
-  size_t length = len;
-
-  // build a temporary buffer
-  #if RADIOLIB_STATIC_ONLY
-    uint8_t data[RADIOLIB_STATIC_ARRAY_SIZE + 1];
-  #else
-    uint8_t* data = NULL;
-    if(length == 0) {
-      data = new uint8_t[this->maxPacketLength + 1];
-    } else {
-      data = new uint8_t[length + 1];
-    }
-    RADIOLIB_ASSERT_PTR(data);
-  #endif
-
-  // attempt packet reception
-  state = receive(data, length, timeout);
-
-  // any of the following leads to at least some data being available
-  // let's leave the decision of whether to keep it or not up to the user
-  if((state == RADIOLIB_ERR_NONE) || (state == RADIOLIB_ERR_CRC_MISMATCH) || (state == RADIOLIB_ERR_LORA_HEADER_DAMAGED)) {
-    // read the number of actually received bytes (for unknown packets)
-    if(len == 0) {
-      length = getPacketLength(false);
-    }
-
-    // add null terminator
-    data[length] = 0;
-
-    // initialize Arduino String class
-    str = String(reinterpret_cast<char*>(data));
-  }
-
-  // deallocate temporary buffer
-  #if !RADIOLIB_STATIC_ONLY
-    delete[] data;
-  #endif
-
-  return(state);
-}
-#endif
 
 int16_t PhysicalLayer::receive(uint8_t* data, size_t len, RadioLibTime_t timeout) {
   (void)data;
@@ -147,12 +60,6 @@ int16_t PhysicalLayer::startReceive(uint32_t timeout, RadioLibIrqFlags_t irqFlag
   return(this->launchMode());
 }
 
-#if defined(RADIOLIB_BUILD_ARDUINO)
-int16_t PhysicalLayer::startTransmit(String& str, uint8_t addr) {
-  return(startTransmit(str.c_str(), addr));
-}
-#endif
-
 int16_t PhysicalLayer::startTransmit(const char* str, uint8_t addr) {
   return(startTransmit(reinterpret_cast<uint8_t*>(const_cast<char*>(str)), strlen(str), addr));
 }
@@ -178,49 +85,6 @@ int16_t PhysicalLayer::finishTransmit() {
 int16_t PhysicalLayer::finishReceive() {
   return(RADIOLIB_ERR_UNSUPPORTED);
 }
-
-#if defined(RADIOLIB_BUILD_ARDUINO)
-int16_t PhysicalLayer::readData(String& str, size_t len) {
-  int16_t state = RADIOLIB_ERR_NONE;
-
-  // read the number of actually received bytes
-  size_t length = getPacketLength();
-
-  if((len < length) && (len != 0)) {
-    // user requested less bytes than were received, this is allowed (but frowned upon)
-    // requests for more data than were received will only return the number of actually received bytes (unlike PhysicalLayer::receive())
-    length = len;
-  }
-
-  // build a temporary buffer
-  #if RADIOLIB_STATIC_ONLY
-    uint8_t data[RADIOLIB_STATIC_ARRAY_SIZE + 1];
-  #else
-    uint8_t* data = new uint8_t[length + 1];
-    RADIOLIB_ASSERT_PTR(data);
-  #endif
-
-  // read the received data
-  state = readData(data, length);
-
-  // any of the following leads to at least some data being available
-  // let's leave the decision of whether to keep it or not up to the user
-  if((state == RADIOLIB_ERR_NONE) || (state == RADIOLIB_ERR_CRC_MISMATCH) || (state == RADIOLIB_ERR_LORA_HEADER_DAMAGED)) {
-    // add null terminator
-    data[length] = 0;
-
-    // initialize Arduino String class
-    str = String(reinterpret_cast<char*>(data));
-  }
-
-  // deallocate temporary buffer
-  #if !RADIOLIB_STATIC_ONLY
-    delete[] data;
-  #endif
-
-  return(state);
-}
-#endif
 
 int16_t PhysicalLayer::readData(uint8_t* data, size_t len) {
   (void)data;
@@ -582,4 +446,5 @@ void PhysicalLayer::setTimerFlag() {
   Module* mod = getMod();
   mod->TimerFlag = true;
 }
+
 #endif

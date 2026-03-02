@@ -4,194 +4,194 @@
 #if !RADIOLIB_EXCLUDE_SX126X
 
 SX126x::SX126x(Module* mod) : PhysicalLayer() {
-  this->freqStep = RADIOLIB_SX126X_FREQUENCY_STEP_SIZE;
-  this->maxPacketLength = RADIOLIB_SX126X_MAX_PACKET_LENGTH;
-  this->mod = mod;
-  this->XTAL = false;
-  this->standbyXOSC = false;
-  this->irqMap[RADIOLIB_IRQ_TX_DONE] = RADIOLIB_SX126X_IRQ_TX_DONE;
-  this->irqMap[RADIOLIB_IRQ_RX_DONE] = RADIOLIB_SX126X_IRQ_RX_DONE;
-  this->irqMap[RADIOLIB_IRQ_PREAMBLE_DETECTED] = RADIOLIB_SX126X_IRQ_PREAMBLE_DETECTED;
-  this->irqMap[RADIOLIB_IRQ_SYNC_WORD_VALID] = RADIOLIB_SX126X_IRQ_SYNC_WORD_VALID;
-  this->irqMap[RADIOLIB_IRQ_HEADER_VALID] = RADIOLIB_SX126X_IRQ_HEADER_VALID;
-  this->irqMap[RADIOLIB_IRQ_HEADER_ERR] = RADIOLIB_SX126X_IRQ_HEADER_ERR;
-  this->irqMap[RADIOLIB_IRQ_CRC_ERR] = RADIOLIB_SX126X_IRQ_CRC_ERR;
-  this->irqMap[RADIOLIB_IRQ_CAD_DONE] = RADIOLIB_SX126X_IRQ_CAD_DONE;
-  this->irqMap[RADIOLIB_IRQ_CAD_DETECTED] = RADIOLIB_SX126X_IRQ_CAD_DETECTED;
-  this->irqMap[RADIOLIB_IRQ_TIMEOUT] = RADIOLIB_SX126X_IRQ_TIMEOUT;
+	this->freqStep = RADIOLIB_SX126X_FREQUENCY_STEP_SIZE;
+	this->maxPacketLength = RADIOLIB_SX126X_MAX_PACKET_LENGTH;
+	this->mod = mod;
+	this->XTAL = false;
+	this->standbyXOSC = false;
+	this->irqMap[RADIOLIB_IRQ_TX_DONE] = RADIOLIB_SX126X_IRQ_TX_DONE;
+	this->irqMap[RADIOLIB_IRQ_RX_DONE] = RADIOLIB_SX126X_IRQ_RX_DONE;
+	this->irqMap[RADIOLIB_IRQ_PREAMBLE_DETECTED] = RADIOLIB_SX126X_IRQ_PREAMBLE_DETECTED;
+	this->irqMap[RADIOLIB_IRQ_SYNC_WORD_VALID] = RADIOLIB_SX126X_IRQ_SYNC_WORD_VALID;
+	this->irqMap[RADIOLIB_IRQ_HEADER_VALID] = RADIOLIB_SX126X_IRQ_HEADER_VALID;
+	this->irqMap[RADIOLIB_IRQ_HEADER_ERR] = RADIOLIB_SX126X_IRQ_HEADER_ERR;
+	this->irqMap[RADIOLIB_IRQ_CRC_ERR] = RADIOLIB_SX126X_IRQ_CRC_ERR;
+	this->irqMap[RADIOLIB_IRQ_CAD_DONE] = RADIOLIB_SX126X_IRQ_CAD_DONE;
+	this->irqMap[RADIOLIB_IRQ_CAD_DETECTED] = RADIOLIB_SX126X_IRQ_CAD_DETECTED;
+	this->irqMap[RADIOLIB_IRQ_TIMEOUT] = RADIOLIB_SX126X_IRQ_TIMEOUT;
 }
 
 int16_t SX126x::begin(uint8_t cr, uint8_t syncWord, uint16_t preambleLength, float tcxoVoltage, bool useRegulatorLDO) {
-  // BW in kHz and SF are required in order to calculate LDRO for setModulationParams
-  // set the defaults, this will get overwritten later anyway
-  this->bandwidthKhz = 500.0;
-  this->spreadingFactor = 9;
+	// BW in kHz and SF are required in order to calculate LDRO for setModulationParams
+	// set the defaults, this will get overwritten later anyway
+	this->bandwidthKhz = 500.0;
+	this->spreadingFactor = 9;
 
-  // initialize configuration variables (will be overwritten during public settings configuration)
-  this->bandwidth = RADIOLIB_SX126X_LORA_BW_500_0;  // initialized to 500 kHz, since lower values will interfere with LLCC68
-  this->codingRate = RADIOLIB_SX126X_LORA_CR_4_7;
-  this->ldrOptimize = 0x00;
-  this->crcTypeLoRa = RADIOLIB_SX126X_LORA_CRC_ON;
-  this->preambleLengthLoRa = preambleLength;
-  this->tcxoDelay = 0;
-  this->headerType = RADIOLIB_SX126X_LORA_HEADER_EXPLICIT;
-  this->implicitLen = 0xFF;
+	// initialize configuration variables (will be overwritten during public settings configuration)
+	this->bandwidth = RADIOLIB_SX126X_LORA_BW_500_0;  // initialized to 500 kHz, since lower values will interfere with LLCC68
+	this->codingRate = RADIOLIB_SX126X_LORA_CR_4_7;
+	this->ldrOptimize = 0x00;
+	this->crcTypeLoRa = RADIOLIB_SX126X_LORA_CRC_ON;
+	this->preambleLengthLoRa = preambleLength;
+	this->tcxoDelay = 0;
+	this->headerType = RADIOLIB_SX126X_LORA_HEADER_EXPLICIT;
+	this->implicitLen = 0xFF;
 
-  // set module properties and perform initial setup
-  int16_t state = this->modSetup(tcxoVoltage, useRegulatorLDO, RADIOLIB_SX126X_PACKET_TYPE_LORA);
-  RADIOLIB_ASSERT(state);
+	// set module properties and perform initial setup
+	int16_t state = this->modSetup(tcxoVoltage, useRegulatorLDO, RADIOLIB_SX126X_PACKET_TYPE_LORA);
+	RADIOLIB_ASSERT(state);
 
-  // configure publicly accessible settings
-  state = setCodingRate(cr);
-  RADIOLIB_ASSERT(state);
+	// configure publicly accessible settings
+	state = setCodingRate(cr);
+	RADIOLIB_ASSERT(state);
 
-  state = setSyncWord(syncWord);
-  RADIOLIB_ASSERT(state);
+	state = setSyncWord(syncWord);
+	RADIOLIB_ASSERT(state);
 
-  state = setPreambleLength(preambleLength);
-  RADIOLIB_ASSERT(state);
+	state = setPreambleLength(preambleLength);
+	RADIOLIB_ASSERT(state);
 
-  // set publicly accessible settings that are not a part of begin method
-  state = setCurrentLimit(60.0);
-  RADIOLIB_ASSERT(state);
+	// set publicly accessible settings that are not a part of begin method
+	state = setCurrentLimit(60.0);
+	RADIOLIB_ASSERT(state);
 
-  state = setDio2AsRfSwitch(true);
-  RADIOLIB_ASSERT(state);
+	state = setDio2AsRfSwitch(true);
+	RADIOLIB_ASSERT(state);
 
-  state = setCRC(2);
-  RADIOLIB_ASSERT(state);
+	state = setCRC(2);
+	RADIOLIB_ASSERT(state);
 
-  state = invertIQ(false);
-  RADIOLIB_ASSERT(state);
+	state = invertIQ(false);
+	RADIOLIB_ASSERT(state);
 
-  return(state);
+	return(state);
 }
 
 int16_t SX126x::beginFSK(float br, float freqDev, float rxBw, uint16_t preambleLength, float tcxoVoltage, bool useRegulatorLDO) {
-  // initialize configuration variables (will be overwritten during public settings configuration)
-  this->bitRate = 21333;                                  // 48.0 kbps
-  this->frequencyDev = 52428;                             // 50.0 kHz
-  this->rxBandwidth = RADIOLIB_SX126X_GFSK_RX_BW_156_2;
-  this->rxBandwidthKhz = 156.2;
-  this->pulseShape = RADIOLIB_SX126X_GFSK_FILTER_GAUSS_0_5;
-  this->crcTypeFSK = RADIOLIB_SX126X_GFSK_CRC_2_BYTE_INV;     // CCITT CRC configuration
-  this->preambleLengthFSK = preambleLength;
+	// initialize configuration variables (will be overwritten during public settings configuration)
+	this->bitRate = 21333;                                  // 48.0 kbps
+	this->frequencyDev = 52428;                             // 50.0 kHz
+	this->rxBandwidth = RADIOLIB_SX126X_GFSK_RX_BW_156_2;
+	this->rxBandwidthKhz = 156.2;
+	this->pulseShape = RADIOLIB_SX126X_GFSK_FILTER_GAUSS_0_5;
+	this->crcTypeFSK = RADIOLIB_SX126X_GFSK_CRC_2_BYTE_INV;     // CCITT CRC configuration
+	this->preambleLengthFSK = preambleLength;
 
-  // set module properties and perform initial setup
-  int16_t state = this->modSetup(tcxoVoltage, useRegulatorLDO, RADIOLIB_SX126X_PACKET_TYPE_GFSK);
-  RADIOLIB_ASSERT(state);
+	// set module properties and perform initial setup
+	int16_t state = this->modSetup(tcxoVoltage, useRegulatorLDO, RADIOLIB_SX126X_PACKET_TYPE_GFSK);
+	RADIOLIB_ASSERT(state);
 
-  // configure publicly accessible settings
-  state = setBitRate(br);
-  RADIOLIB_ASSERT(state);
+	// configure publicly accessible settings
+	state = setBitRate(br);
+	RADIOLIB_ASSERT(state);
 
-  state = setFrequencyDeviation(freqDev);
-  RADIOLIB_ASSERT(state);
+	state = setFrequencyDeviation(freqDev);
+	RADIOLIB_ASSERT(state);
 
-  state = setRxBandwidth(rxBw);
-  RADIOLIB_ASSERT(state);
+	state = setRxBandwidth(rxBw);
+	RADIOLIB_ASSERT(state);
 
-  state = setCurrentLimit(60.0);
-  RADIOLIB_ASSERT(state);
+	state = setCurrentLimit(60.0);
+	RADIOLIB_ASSERT(state);
 
-  state = setPreambleLength(preambleLength);
-  RADIOLIB_ASSERT(state);
+	state = setPreambleLength(preambleLength);
+	RADIOLIB_ASSERT(state);
 
-  // set publicly accessible settings that are not a part of begin method
-  uint8_t sync[] = {0x12, 0xAD};
-  state = setSyncWord(sync, 2);
-  RADIOLIB_ASSERT(state);
+	// set publicly accessible settings that are not a part of begin method
+	uint8_t sync[] = {0x12, 0xAD};
+	state = setSyncWord(sync, 2);
+	RADIOLIB_ASSERT(state);
 
-  state = setDataShaping(RADIOLIB_SHAPING_NONE);
-  RADIOLIB_ASSERT(state);
+	state = setDataShaping(RADIOLIB_SHAPING_NONE);
+	RADIOLIB_ASSERT(state);
 
-  state = setEncoding(RADIOLIB_ENCODING_NRZ);
-  RADIOLIB_ASSERT(state);
+	state = setEncoding(RADIOLIB_ENCODING_NRZ);
+	RADIOLIB_ASSERT(state);
 
-  state = variablePacketLengthMode(RADIOLIB_SX126X_MAX_PACKET_LENGTH);
-  RADIOLIB_ASSERT(state);
+	state = variablePacketLengthMode(RADIOLIB_SX126X_MAX_PACKET_LENGTH);
+	RADIOLIB_ASSERT(state);
 
-  state = setCRC(2);
-  RADIOLIB_ASSERT(state);
+	state = setCRC(2);
+	RADIOLIB_ASSERT(state);
 
-  state = setDio2AsRfSwitch(true);
-  RADIOLIB_ASSERT(state);
+	state = setDio2AsRfSwitch(true);
+	RADIOLIB_ASSERT(state);
 
-  return(state);
+	return(state);
 }
 
 int16_t SX126x::beginLRFHSS(uint8_t bw, uint8_t cr, bool narrowGrid, float tcxoVoltage, bool useRegulatorLDO) {
-  this->lrFhssGridNonFcc = narrowGrid;
-  
-  // set module properties and perform initial setup
-  int16_t state = this->modSetup(tcxoVoltage, useRegulatorLDO, RADIOLIB_SX126X_PACKET_TYPE_LR_FHSS);
-  RADIOLIB_ASSERT(state);
+	this->lrFhssGridNonFcc = narrowGrid;
 
-  // set publicly accessible settings that are not a part of begin method
-  state = setCurrentLimit(60.0);
-  RADIOLIB_ASSERT(state);
+	// set module properties and perform initial setup
+	int16_t state = this->modSetup(tcxoVoltage, useRegulatorLDO, RADIOLIB_SX126X_PACKET_TYPE_LR_FHSS);
+	RADIOLIB_ASSERT(state);
 
-  state = setDio2AsRfSwitch(true);
-  RADIOLIB_ASSERT(state);
+	// set publicly accessible settings that are not a part of begin method
+	state = setCurrentLimit(60.0);
+	RADIOLIB_ASSERT(state);
 
-  // set all packet params to 0 (packet engine is disabled in LR-FHSS mode)
-  state = setPacketParamsFSK(0, 0, 0, 0, 0, 0, 0, 0);
-  RADIOLIB_ASSERT(state);
+	state = setDio2AsRfSwitch(true);
+	RADIOLIB_ASSERT(state);
 
-  // set bit rate
-  this->rxBandwidth = 0;
-  this->frequencyDev = 0;
-  this->pulseShape = RADIOLIB_SX126X_GFSK_FILTER_GAUSS_1;
-  state = setBitRate(0.48828125f);
-  RADIOLIB_ASSERT(state);
+	// set all packet params to 0 (packet engine is disabled in LR-FHSS mode)
+	state = setPacketParamsFSK(0, 0, 0, 0, 0, 0, 0, 0);
+	RADIOLIB_ASSERT(state);
 
-  return(setLrFhssConfig(bw, cr));
+	// set bit rate
+	this->rxBandwidth = 0;
+	this->frequencyDev = 0;
+	this->pulseShape = RADIOLIB_SX126X_GFSK_FILTER_GAUSS_1;
+	state = setBitRate(0.48828125f);
+	RADIOLIB_ASSERT(state);
+
+	return(setLrFhssConfig(bw, cr));
 }
 
 int16_t SX126x::setLrFhssConfig(uint8_t bw, uint8_t cr, uint8_t hdrCount, uint16_t hopSeqId) {
-  // check and cache all parameters
-  RADIOLIB_CHECK_RANGE((int8_t)cr, (int8_t)RADIOLIB_SX126X_LR_FHSS_CR_5_6, (int8_t)RADIOLIB_SX126X_LR_FHSS_CR_1_3, RADIOLIB_ERR_INVALID_CODING_RATE);
-  this->lrFhssCr = cr;
-  RADIOLIB_CHECK_RANGE((int8_t)bw, (int8_t)RADIOLIB_SX126X_LR_FHSS_BW_39_06, (int8_t)RADIOLIB_SX126X_LR_FHSS_BW_1574_2, RADIOLIB_ERR_INVALID_BANDWIDTH);
-  this->lrFhssBw = bw;
-  RADIOLIB_CHECK_RANGE(hdrCount, 1, 4, RADIOLIB_ERR_INVALID_BIT_RANGE);
-  this->lrFhssHdrCount = hdrCount;
-  RADIOLIB_CHECK_RANGE((int16_t)hopSeqId, (int16_t)0x000, (int16_t)0x1FF, RADIOLIB_ERR_INVALID_DATA_SHAPING);
-  this->lrFhssHopSeqId = hopSeqId;
-  return(RADIOLIB_ERR_NONE);
+	// check and cache all parameters
+	RADIOLIB_CHECK_RANGE((int8_t)cr, (int8_t)RADIOLIB_SX126X_LR_FHSS_CR_5_6, (int8_t)RADIOLIB_SX126X_LR_FHSS_CR_1_3, RADIOLIB_ERR_INVALID_CODING_RATE);
+	this->lrFhssCr = cr;
+	RADIOLIB_CHECK_RANGE((int8_t)bw, (int8_t)RADIOLIB_SX126X_LR_FHSS_BW_39_06, (int8_t)RADIOLIB_SX126X_LR_FHSS_BW_1574_2, RADIOLIB_ERR_INVALID_BANDWIDTH);
+	this->lrFhssBw = bw;
+	RADIOLIB_CHECK_RANGE(hdrCount, 1, 4, RADIOLIB_ERR_INVALID_BIT_RANGE);
+	this->lrFhssHdrCount = hdrCount;
+	RADIOLIB_CHECK_RANGE((int16_t)hopSeqId, (int16_t)0x000, (int16_t)0x1FF, RADIOLIB_ERR_INVALID_DATA_SHAPING);
+	this->lrFhssHopSeqId = hopSeqId;
+	return(RADIOLIB_ERR_NONE);
 }
 
 int16_t SX126x::reset(bool verify) {
-  // run the reset sequence
-  this->mod->hal->pinMode(this->mod->getRst(), this->mod->hal->GpioModeOutput);
-  this->mod->hal->digitalWrite(this->mod->getRst(), this->mod->hal->GpioLevelLow);
-  this->mod->hal->delay(1);
-  this->mod->hal->digitalWrite(this->mod->getRst(), this->mod->hal->GpioLevelHigh);
+	// run the reset sequence
+	this->mod->hal->pinMode(this->mod->getRst(), this->mod->hal->GpioModeOutput);
+	this->mod->hal->digitalWrite(this->mod->getRst(), this->mod->hal->GpioLevelLow);
+	this->mod->hal->delay(1);
+	this->mod->hal->digitalWrite(this->mod->getRst(), this->mod->hal->GpioLevelHigh);
 
-  // return immediately when verification is disabled
-  if(!verify) {
-    return(RADIOLIB_ERR_NONE);
-  }
+  	// return immediately when verification is disabled
+  	if(!verify) {
+    	return(RADIOLIB_ERR_NONE);
+  	}
 
-  // set mode to standby - SX126x often refuses first few commands after reset
-  RadioLibTime_t start = this->mod->hal->millis();
-  while(true) {
-    // try to set mode to standby
-    int16_t state = standby();
-    if(state == RADIOLIB_ERR_NONE) {
-      // standby command successful
-      return(RADIOLIB_ERR_NONE);
-    }
+	// set mode to standby - SX126x often refuses first few commands after reset
+	RadioLibTime_t start = this->mod->hal->millis();
+  	while(true) {
+    	// try to set mode to standby
+    	int16_t state = standby();
+    	if(state == RADIOLIB_ERR_NONE) {
+	      	// standby command successful
+      		return(RADIOLIB_ERR_NONE);
+    	}
 
-    // standby command failed, check timeout and try again
-    if(this->mod->hal->millis() - start >= 1000) {
-      // timed out, possibly incorrect wiring
-      return(state);
-    }
+    	// standby command failed, check timeout and try again
+    	if(this->mod->hal->millis() - start >= 1000) {
+      		// timed out, possibly incorrect wiring
+      		return(state);
+    	}
 
-    // wait a bit to not spam the module
-    this->mod->hal->delay(10);
-  }
+    	// wait a bit to not spam the module
+    	this->mod->hal->delay(10);
+  	}
 }
 
 int16_t SX126x::transmit(const uint8_t* data, size_t len, uint8_t addr) {
@@ -1304,95 +1304,98 @@ int16_t SX126x::fixPaClamping(bool enable) {
 }
 
 int16_t SX126x::fixImplicitTimeout() {
-  // fixes timeout in implicit header mode
-  // see SX1262/SX1268 datasheet, chapter 15 Known Limitations, section 15.3 for details
+	// fixes timeout in implicit header mode
+	// see SX1262/SX1268 datasheet, chapter 15 Known Limitations, section 15.3 for details
 
-  //check if we're in implicit LoRa mode
-  if(!((this->headerType == RADIOLIB_SX126X_LORA_HEADER_IMPLICIT) && (getPacketType() == RADIOLIB_SX126X_PACKET_TYPE_LORA))) {
-    // not in the correct mode, nothing to do here
-    return(RADIOLIB_ERR_NONE);
-  }
+  	//check if we're in implicit LoRa mode
+  	if(!((this->headerType == RADIOLIB_SX126X_LORA_HEADER_IMPLICIT) && (getPacketType() == RADIOLIB_SX126X_PACKET_TYPE_LORA))) {
+    	// not in the correct mode, nothing to do here
+		return(RADIOLIB_ERR_NONE);
+  	}
 
-  // stop RTC counter
-  uint8_t rtcStop = 0x00;
-  int16_t state = writeRegister(RADIOLIB_SX126X_REG_RTC_CTRL, &rtcStop, 1);
-  RADIOLIB_ASSERT(state);
+	// stop RTC counter
+	uint8_t rtcStop = 0x00;
+	int16_t state = writeRegister(RADIOLIB_SX126X_REG_RTC_CTRL, &rtcStop, 1);
+	RADIOLIB_ASSERT(state);
 
-  // read currently active event
-  uint8_t rtcEvent = 0;
-  state = readRegister(RADIOLIB_SX126X_REG_EVENT_MASK, &rtcEvent, 1);
-  RADIOLIB_ASSERT(state);
+	// read currently active event
+	uint8_t rtcEvent = 0;
+	state = readRegister(RADIOLIB_SX126X_REG_EVENT_MASK, &rtcEvent, 1);
+	RADIOLIB_ASSERT(state);
 
-  // clear events
-  rtcEvent |= 0x02;
-  return(writeRegister(RADIOLIB_SX126X_REG_EVENT_MASK, &rtcEvent, 1));
+	// clear events
+	rtcEvent |= 0x02;
+	return(writeRegister(RADIOLIB_SX126X_REG_EVENT_MASK, &rtcEvent, 1));
 }
 
 int16_t SX126x::fixInvertedIQ(uint8_t iqConfig) {
-  // fixes IQ configuration for inverted IQ
-  // see SX1262/SX1268 datasheet, chapter 15 Known Limitations, section 15.4 for details
+	// fixes IQ configuration for inverted IQ
+	// see SX1262/SX1268 datasheet, chapter 15 Known Limitations, section 15.4 for details
 
-  // read current IQ configuration
-  uint8_t iqConfigCurrent = 0;
-  int16_t state = readRegister(RADIOLIB_SX126X_REG_IQ_CONFIG, &iqConfigCurrent, 1);
-  RADIOLIB_ASSERT(state);
+	// read current IQ configuration
+	uint8_t iqConfigCurrent = 0;
+	int16_t state = readRegister(RADIOLIB_SX126X_REG_IQ_CONFIG, &iqConfigCurrent, 1);
+	RADIOLIB_ASSERT(state);
 
-  // set correct IQ configuration
-  if(iqConfig == RADIOLIB_SX126X_LORA_IQ_INVERTED) {
-    iqConfigCurrent &= 0xFB;
-  } else {
-    iqConfigCurrent |= 0x04;
-  }
+	// set correct IQ configuration
+	if(iqConfig == RADIOLIB_SX126X_LORA_IQ_INVERTED) {
+		iqConfigCurrent &= 0xFB;
+	}
+	else {
+		iqConfigCurrent |= 0x04;
+	}
 
-  // update with the new value
-  return(writeRegister(RADIOLIB_SX126X_REG_IQ_CONFIG, &iqConfigCurrent, 1));
+	// update with the new value
+	return(writeRegister(RADIOLIB_SX126X_REG_IQ_CONFIG, &iqConfigCurrent, 1));
 }
 
 Module* SX126x::getMod() {
-  return(this->mod);
+	return(this->mod);
 }
 
 int16_t SX126x::modSetup(float tcxoVoltage, bool useRegulatorLDO, uint8_t modem) {
-  // set module properties
-  this->mod->init();
-  this->mod->hal->pinMode(this->mod->getIrq(), this->mod->hal->GpioModeInput);
-  this->mod->hal->pinMode(this->mod->getGpio(), this->mod->hal->GpioModeInput);
-  this->mod->spiConfig.widths[RADIOLIB_MODULE_SPI_WIDTH_ADDR] = Module::BITS_16;
-  this->mod->spiConfig.widths[RADIOLIB_MODULE_SPI_WIDTH_CMD] = Module::BITS_8;
-  this->mod->spiConfig.statusPos = 1;
-  this->mod->spiConfig.cmds[RADIOLIB_MODULE_SPI_COMMAND_READ] = RADIOLIB_SX126X_CMD_READ_REGISTER;
-  this->mod->spiConfig.cmds[RADIOLIB_MODULE_SPI_COMMAND_WRITE] = RADIOLIB_SX126X_CMD_WRITE_REGISTER;
-  this->mod->spiConfig.cmds[RADIOLIB_MODULE_SPI_COMMAND_NOP] = RADIOLIB_SX126X_CMD_NOP;
-  this->mod->spiConfig.cmds[RADIOLIB_MODULE_SPI_COMMAND_STATUS] = RADIOLIB_SX126X_CMD_GET_STATUS;
-  this->mod->spiConfig.stream = true;
-  this->mod->spiConfig.parseStatusCb = SPIparseStatus;
+	// set module properties
+	this->mod->init();
+	this->mod->hal->pinMode(this->mod->getIrq(), this->mod->hal->GpioModeInput);
+	this->mod->hal->pinMode(this->mod->getGpio(), this->mod->hal->GpioModeInput);
+	this->mod->spiConfig.widths[RADIOLIB_MODULE_SPI_WIDTH_ADDR] = Module::BITS_16;
+	this->mod->spiConfig.widths[RADIOLIB_MODULE_SPI_WIDTH_CMD] = Module::BITS_8;
+	this->mod->spiConfig.statusPos = 1;
+	this->mod->spiConfig.cmds[RADIOLIB_MODULE_SPI_COMMAND_READ] = RADIOLIB_SX126X_CMD_READ_REGISTER;
+	this->mod->spiConfig.cmds[RADIOLIB_MODULE_SPI_COMMAND_WRITE] = RADIOLIB_SX126X_CMD_WRITE_REGISTER;
+	this->mod->spiConfig.cmds[RADIOLIB_MODULE_SPI_COMMAND_NOP] = RADIOLIB_SX126X_CMD_NOP;
+	this->mod->spiConfig.cmds[RADIOLIB_MODULE_SPI_COMMAND_STATUS] = RADIOLIB_SX126X_CMD_GET_STATUS;
+	this->mod->spiConfig.stream = true;
+	this->mod->spiConfig.parseStatusCb = SPIparseStatus;
 
-  // find the SX126x chip - this will also reset the module and verify the module
-  if(!SX126x::findChip(this->chipType)) {
-    RADIOLIB_DEBUG_BASIC_PRINTLN("No SX126x found!");
-    this->mod->term();
-    return(RADIOLIB_ERR_CHIP_NOT_FOUND);
-  }
-  RADIOLIB_DEBUG_BASIC_PRINTLN("M\tSX126x");
+	// find the SX126x chip - this will also reset the module and verify the module
+	if(!SX126x::findChip(this->chipType)) {
+		RADIOLIB_DEBUG_BASIC_PRINTLN("No SX126x found!");
+		this->mod->term();
+		return(RADIOLIB_ERR_CHIP_NOT_FOUND);
+	}
+	RADIOLIB_DEBUG_BASIC_PRINTLN("M\tSX126x");
 
-  int16_t state = RADIOLIB_ERR_NONE;
+	int16_t state = RADIOLIB_ERR_NONE;
 
-  // set TCXO control, if requested
-  if(!this->XTAL && tcxoVoltage > 0.0f) {
-    state = setTCXO(tcxoVoltage);
-    RADIOLIB_ASSERT(state);
-  }
+	// set TCXO control, if requested
+	if(!this->XTAL && tcxoVoltage > 0.0f) {
+	state = setTCXO(tcxoVoltage);
+	RADIOLIB_ASSERT(state);
+	}
 
-  // configure settings not accessible by API
-  state = config(modem);
-  RADIOLIB_ASSERT(state);
+	// configure settings not accessible by API
+	state = config(modem);
+	RADIOLIB_ASSERT(state);
 
-  if (useRegulatorLDO) {
-    state = setRegulatorLDO();
-  } else {
-    state = setRegulatorDCDC();
-  }
-  return(state);
+	if (useRegulatorLDO) {
+    	state = setRegulatorLDO();
+  	}
+	else {
+    	state = setRegulatorDCDC();
+  	}
+
+	return(state);
 }
 
 int16_t SX126x::SPIparseStatus(uint8_t in) {

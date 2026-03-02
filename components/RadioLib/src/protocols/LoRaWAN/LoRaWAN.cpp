@@ -16,31 +16,6 @@ LoRaWANNode::LoRaWANNode(PhysicalLayer* phy, const LoRaWANBand_t* band, uint8_t 
   }
 }
 
-#if defined(RADIOLIB_BUILD_ARDUINO)
-int16_t LoRaWANNode::sendReceive(const String& strUp, uint8_t fPort, String& strDown, bool isConfirmed, LoRaWANEvent_t* eventUp, LoRaWANEvent_t* eventDown) {
-  int16_t state = RADIOLIB_ERR_UNKNOWN;
-  
-  const char* dataUp = strUp.c_str();
-
-  // build a temporary buffer
-  // LoRaWAN downlinks can have 250 bytes at most with 1 extra byte for NULL
-  size_t lenDown = 0;
-  uint8_t dataDown[RADIOLIB_LORAWAN_MAX_DOWNLINK_SIZE + 1];
-
-  state = this->sendReceive(reinterpret_cast<const uint8_t*>(dataUp), strlen(dataUp), fPort, dataDown, &lenDown, isConfirmed, eventUp, eventDown);
-
-  if(state > RADIOLIB_ERR_NONE) {
-    // add null terminator
-    dataDown[lenDown] = '\0';
-
-    // initialize Arduino String class
-    strDown = String(reinterpret_cast<char*>(dataDown));
-  }
-
-  return(state);
-}
-#endif
-
 int16_t LoRaWANNode::sendReceive(const char* strUp, uint8_t fPort, bool isConfirmed, LoRaWANEvent_t* eventUp, LoRaWANEvent_t* eventDown) {
   // build a temporary buffer
   // LoRaWAN downlinks can have 250 bytes at most with 1 extra byte for NULL

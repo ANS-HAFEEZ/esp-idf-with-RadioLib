@@ -1,14 +1,5 @@
 #include "ExternalRadio.h"
 
-#if defined(RADIOLIB_BUILD_ARDUINO)
-ExternalRadio::ExternalRadio(uint32_t pin) : PhysicalLayer() {
-  this->freqStep = 1;
-  mod = new Module(RADIOLIB_NC, RADIOLIB_NC, RADIOLIB_NC, pin);
-  mod->hal->pinMode(pin, mod->hal->GpioModeOutput);
-  this->prevFrf = 0;
-}
-#endif
-
 ExternalRadio::ExternalRadio(RadioLibHal *hal, uint32_t pin) : PhysicalLayer() {
   this->freqStep = 1;
   mod = new Module(hal, RADIOLIB_NC, RADIOLIB_NC, RADIOLIB_NC, pin);

@@ -675,22 +675,6 @@ class LoRaWANNode {
     /*! \brief Stop an ongoing multicast session */
     void stopMulticastSession();
 
-    #if defined(RADIOLIB_BUILD_ARDUINO)
-    /*!
-      \brief Send a message to the server and wait for a downlink during Rx1 and/or Rx2 window.
-      \param strUp Address of Arduino String that will be transmitted.
-      \param fPort Port number to send the message to.
-      \param strDown Address of Arduino String to save the received data.
-      \param isConfirmed Whether to send a confirmed uplink or not.
-      \param eventUp Pointer to a structure to store extra information about the uplink event
-      (fPort, frame counter, etc.). If set to NULL, no extra information will be passed to the user.
-      \param eventDown Pointer to a structure to store extra information about the downlink event
-      (fPort, frame counter, etc.). If set to NULL, no extra information will be passed to the user.
-      \returns Window number > 0 if downlink was received, 0 is no downlink was received, otherwise \ref status_codes
-    */
-    virtual int16_t sendReceive(const String& strUp, uint8_t fPort, String& strDown, bool isConfirmed = false, LoRaWANEvent_t* eventUp = NULL, LoRaWANEvent_t* eventDown = NULL);
-    #endif
-
     /*!
       \brief Send a message to the server and wait for a downlink during Rx1 and/or Rx2 window.
       \param strUp C-string that will be transmitted.

@@ -28,69 +28,6 @@ size_t RadioLibPrint::write(const uint8_t *buffer, size_t size) {
   return n;
 }
 
-#if defined(RADIOLIB_BUILD_ARDUINO)
-size_t RadioLibPrint::print(const __FlashStringHelper* fstr) {
-  // read flash string length
-  size_t len = 0;
-  RADIOLIB_NONVOLATILE_PTR p = reinterpret_cast<RADIOLIB_NONVOLATILE_PTR>(fstr);
-  while(true) {
-    char c = RADIOLIB_NONVOLATILE_READ_BYTE(p++);
-    len++;
-    if(c == '\0') {
-      break;
-    }
-  }
-
-  // dynamically allocate memory
-  #if RADIOLIB_STATIC_ONLY
-    char str[RADIOLIB_STATIC_ARRAY_SIZE];
-  #else
-    char* str = new char[len];
-  #endif
-
-  // copy string from flash
-  p = reinterpret_cast<RADIOLIB_NONVOLATILE_PTR>(fstr);
-  for(size_t i = 0; i < len; i++) {
-    str[i] = RADIOLIB_NONVOLATILE_READ_BYTE(p + i);
-  }
-
-  size_t n = 0;
-  if(this->encoding == RADIOLIB_ITA2) {
-    ITA2String ita2 = ITA2String(str);
-    n = RadioLibPrint::print(ita2);
-  } else {
-    n = write(reinterpret_cast<uint8_t*>(str), len);
-  }
-  #if !RADIOLIB_STATIC_ONLY
-    delete[] str;
-  #endif
-  return(n);
-}
-
-size_t RadioLibPrint::print(const String& str) {
-  size_t n = 0;
-  if(this->encoding == RADIOLIB_ITA2) {
-    ITA2String ita2 = ITA2String(str.c_str());
-    n = RadioLibPrint::print(ita2);
-  } else {
-    n = write(reinterpret_cast<uint8_t*>(const_cast<char*>(str.c_str())), str.length());
-  }
-  return(n);
-}
-
-size_t RadioLibPrint::println(const __FlashStringHelper* fstr) {
-  size_t n = RadioLibPrint::print(fstr);
-  n += RadioLibPrint::println();
-  return(n);
-}
-
-size_t RadioLibPrint::println(const String& str) {
-  size_t n = RadioLibPrint::print(str);
-  n += RadioLibPrint::println();
-  return(n);
-}
-#endif
-
 size_t RadioLibPrint::print(const char str[]) {
   size_t n = 0;
   if(this->encoding == RADIOLIB_ITA2) {

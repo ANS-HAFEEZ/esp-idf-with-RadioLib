@@ -4,18 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined(RADIOLIB_BUILD_ARDUINO)
-#include "hal/Arduino/ArduinoHal.h"
-
-Module::Module(uint32_t cs, uint32_t irq, uint32_t rst, uint32_t gpio) : csPin(cs), irqPin(irq), rstPin(rst), gpioPin(gpio) {
-  this->hal = new ArduinoHal();
-}
-
-Module::Module(uint32_t cs, uint32_t irq, uint32_t rst, uint32_t gpio, SPIClass& spi, SPISettings spiSettings) : csPin(cs), irqPin(irq), rstPin(rst), gpioPin(gpio) {
-  this->hal = new ArduinoHal(spi, spiSettings);
-}
-#endif
-
 Module::Module(RadioLibHal *hal, uint32_t cs, uint32_t irq, uint32_t rst, uint32_t gpio) : csPin(cs), irqPin(irq), rstPin(rst), gpioPin(gpio) {
   this->hal = hal;
 }

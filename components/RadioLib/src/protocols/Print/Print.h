@@ -29,14 +29,6 @@ class RadioLibPrint {
     size_t print(ITA2String& ita2);
     size_t println(ITA2String& ita2);
 
-    #if defined(RADIOLIB_BUILD_ARDUINO)
-    size_t print(const __FlashStringHelper *);
-    size_t print(const String &);
-
-    size_t println(const __FlashStringHelper *);
-    size_t println(const String &);
-    #endif
-
     size_t print(const char[]);
     size_t print(char);
     size_t print(unsigned char, int = DEC);

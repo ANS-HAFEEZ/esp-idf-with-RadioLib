@@ -5,14 +5,6 @@
 #include "Hal.h"
 #include "utils/Utils.h"
 
-#if defined(RADIOLIB_BUILD_ARDUINO)
-  #include <SPI.h>
-#endif
-
-#if defined(STM32WLxx)
-  #include <SubGhz.h>
-#endif
-
 /*!
   \def END_OF_MODE_TABLE Value to use as the last element in a mode table to indicate the
   end of the table. See \ref setRfSwitchTable for details.
@@ -118,28 +110,6 @@ class Module {
       /*! \brief Transmission mode */
       MODE_TX,
     };
-
-    #if defined(RADIOLIB_BUILD_ARDUINO)
-    /*!
-      \brief Arduino Module constructor. Will use the default SPI interface and automatically initialize it.
-      \param cs Arduino pin to be used as chip select.
-      \param irq Arduino pin to be used as interrupt/GPIO.
-      \param rst Arduino pin to be used as hardware reset for the module.
-      \param gpio Arduino pin to be used as additional interrupt/GPIO.
-    */
-    Module(uint32_t cs, uint32_t irq, uint32_t rst, uint32_t gpio = RADIOLIB_NC);
-
-    /*!
-      \brief Arduino Module constructor. Will not attempt SPI interface initialization.
-      \param cs Arduino pin to be used as chip select.
-      \param irq Arduino pin to be used as interrupt/GPIO.
-      \param rst Arduino pin to be used as hardware reset for the module.
-      \param gpio Arduino pin to be used as additional interrupt/GPIO.
-      \param spi SPI interface to be used, can also use software SPI implementations.
-      \param spiSettings SPI interface settings.
-    */
-    Module(uint32_t cs, uint32_t irq, uint32_t rst, uint32_t gpio, SPIClass& spi, SPISettings spiSettings = RADIOLIB_DEFAULT_SPI_SETTINGS);
-    #endif
 
     /*!
       \brief Module constructor.
