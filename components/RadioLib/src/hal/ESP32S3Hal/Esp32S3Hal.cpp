@@ -9,15 +9,18 @@
 
 Esp32S3Hal::Esp32S3Hal(int8_t sck, int8_t miso, int8_t mosi)
     : RadioLibHal(GPIO_MODE_INPUT, GPIO_MODE_OUTPUT, 0, 1, GPIO_INTR_POSEDGE, GPIO_INTR_NEGEDGE),
-      spiSCK_(sck), spiMISO_(miso), spiMOSI_(mosi) {
+            spiSCK_(sck), spiMISO_(miso), spiMOSI_(mosi) {
+    ESP_LOGI(TAG, "%s", __func__);
     (void)gpio_install_isr_service(ESP_INTR_FLAG_IRAM);
 }
 
 void Esp32S3Hal::init() {
+    ESP_LOGI(TAG, "%s", __func__);
     spiBegin();
 }
 
 void Esp32S3Hal::term() {
+    ESP_LOGI(TAG, "%s", __func__);
     spiEnd();
 }
 
@@ -44,14 +47,16 @@ uint32_t Esp32S3Hal::digitalRead(uint32_t pin) {
 }
 
 void Esp32S3Hal::attachInterrupt(uint32_t pin, void (*cb)(void), uint32_t mode) {
+    ESP_LOGI(TAG, "%s", __func__);
     if (pin == RADIOLIB_NC) return;
     gpio_set_intr_type(static_cast<gpio_num_t>(pin),
-                       static_cast<gpio_int_type_t>(mode & 0x7));
+                                static_cast<gpio_int_type_t>(mode & 0x7));
     gpio_isr_handler_add(static_cast<gpio_num_t>(pin),
-                         reinterpret_cast<gpio_isr_t>(cb), nullptr);
+                            reinterpret_cast<gpio_isr_t>(cb), nullptr);
 }
 
 void Esp32S3Hal::detachInterrupt(uint32_t pin) {
+    ESP_LOGI(TAG, "%s", __func__);
     if (pin == RADIOLIB_NC) return;
     gpio_isr_handler_remove(static_cast<gpio_num_t>(pin));
     gpio_set_intr_type(static_cast<gpio_num_t>(pin), GPIO_INTR_DISABLE);
@@ -74,10 +79,12 @@ RadioLibTime_t Esp32S3Hal::millis() {
 }
 
 RadioLibTime_t Esp32S3Hal::micros() {
+    ESP_LOGI(TAG, "%s", __func__);
     return static_cast<RadioLibTime_t>(esp_timer_get_time());
 }
 
 long Esp32S3Hal::pulseIn(uint32_t pin, uint32_t state, RadioLibTime_t timeout) {
+    ESP_LOGI(TAG, "%s", __func__);
     if (pin == RADIOLIB_NC) return 0;
     const RadioLibTime_t t0 = micros();
 
@@ -94,6 +101,7 @@ long Esp32S3Hal::pulseIn(uint32_t pin, uint32_t state, RadioLibTime_t timeout) {
 
 // SPI
 void Esp32S3Hal::spiBegin() {
+    ESP_LOGI(TAG, "%s", __func__);
     spi_bus_config_t bus = {};
     bus.mosi_io_num = spiMOSI_;
     bus.miso_io_num = spiMISO_;
@@ -158,6 +166,7 @@ void Esp32S3Hal::spiEndTransaction() {
 }
 
 void Esp32S3Hal::spiEnd() {
+    ESP_LOGI(TAG, "%s", __func__);
     if (spi_) {
         (void)spi_bus_remove_device(spi_);
         spi_ = nullptr;
